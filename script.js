@@ -332,7 +332,7 @@ if (window.location.pathname.includes("questions.html")) {
 // Add this function to your script.js file
 
 // Timer functionality
-let examDuration = 4 * 60; // 30 minutes in seconds
+let examDuration = 20 * 60; // 30 minutes in seconds
 let timerInterval;
 
 function startTimer() {
