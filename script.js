@@ -120,9 +120,11 @@ function displayQuestions(data, subject, cls) {
     <div class="exam-header">
       <h3>Subject: ${subject.replace(/_/g, " ")}</h3>
       <h4>Class: Primary ${cls.substring(1)}</h4>
+      <h3 class="Warn">If you don't answer all the questions, you'll not be able to submit.</h3>
+      <h3 class="Warn">Do well to answer all the questions before the time runs out.</h3>
       <div class="student-info">
-        <label for="username">Student Name:</label>
-        <input type="text" id="username" required>
+        <label for="username">Full Name:</label>
+        <input type="text" id="username" placeholder="Ada Success" required>
       </div>
     </div>
   `;
@@ -294,7 +296,7 @@ function displayResults(resultData) {
       <p>Keep going, you’re doing great! Just take it one step at a time.</p>
        
       </div>
-      <button onclick="window.location.href='index.html'" class="home-btn">Return to Homepage</button>
+      <button onclick="window.location.href='index.html'" class="submit-btn">Take Another Exam</button>
     </div>
   `;
 
@@ -329,10 +331,9 @@ if (window.location.pathname.includes("questions.html")) {
     fetchQuestions(day, cls, subject);
   });
 }
-// Add this function to your script.js file
 
 // Timer functionality
-let examDuration = 20 * 60; // 30 minutes in seconds
+let examDuration = 30 * 60; // 30 minutes in seconds
 let timerInterval;
 
 function startTimer() {
@@ -359,9 +360,13 @@ function startTimer() {
       clearInterval(timerInterval);
       alert("Time's up! Your exam will be submitted now.");
       checkAnswers();
+      window.location.href = "https://cbt-amber.vercel.app"; // Redirect to a specific link
     }
 
     // Warning when 5 minutes remaining
+    if (timeLeft === 600) {
+      showTimerWarning();
+    }
     if (timeLeft === 300) {
       showTimerWarning();
     }
@@ -375,6 +380,10 @@ function updateTimerDisplay(seconds) {
     .toString()
     .padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
 
+  // Change color when less than 10 minutes remaining
+  if (seconds < 600) {
+    document.getElementById("time-remaining").style.color = "orange";
+  }
   // Change color when less than 5 minutes remaining
   if (seconds < 300) {
     document.getElementById("time-remaining").style.color = "#ef4444";

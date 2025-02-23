@@ -735,3 +735,15 @@ button:hover {
     opacity: 1;
   }
 }
+.submit-btn {
+  background-color: var(--warning);
+  color: white;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.submit-btn:hover {
+  background-color: var(--success);
+}
+.Warn {
+  color: var(--danger);
+}
