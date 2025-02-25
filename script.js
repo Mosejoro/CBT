@@ -169,41 +169,101 @@ function displayQuestions(data, subject, cls) {
     questionsDiv.innerHTML += questionHTML;
   }
 
-  // Add submit button
+   // Add submit button
   questionsDiv.innerHTML += `
     <button onclick="checkAnswers()" class="submit-btn">Submit Exam</button>
   `;
+
+  // Add this line to set up the listeners for removing the "unanswered" class
+  addRadioChangeListeners();
 }
 
 // Check answers and calculate score
 // Function to check answers with validation for unanswered questions
+// Replace both checkAnswers functions with this updated version
 function checkAnswers() {
+  // Get the submit button
+  const submitBtn = document.querySelector(".submit-btn");
+
+  // Display loading state
+  submitBtn.innerHTML = '<span class="spinner"></span> Submitting...';
+  submitBtn.disabled = true;
+
+  // Clear the timer interval if it exists
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+
   let username = document.getElementById("username").value.trim();
   if (!username) {
     alert("Please enter your name before submitting.");
+    // Reset the submit button
+    submitBtn.innerHTML = "Submit Exam";
+    submitBtn.disabled = false;
+    // Restart the timer since the exam wasn't submitted
+    startTimer();
     return;
   }
 
-  // Check for unanswered questions
+  // Check for unanswered questions with higher accuracy
   let unansweredQuestions = [];
-  questionsData.forEach((q, index) => {
-    let selected = document.querySelector(
-      `input[name="q${index + 1}"]:checked`
-    );
-    if (!selected) {
-      unansweredQuestions.push(index + 1);
-    }
-  });
 
-  // If there are unanswered questions, show alert and highlight them
-  if (unansweredQuestions.length > 0) {
-    // Highlight unanswered questions
-    unansweredQuestions.forEach((qNum) => {
-      const questionElement = document
-        .querySelector(`div:has(input[name="q${qNum}"])`)
-        .closest(".question-container");
-      questionElement.classList.add("unanswered");
+  // Loop through each question by index
+  for (let i = 0; i < questionsData.length; i++) {
+    const questionNum = i + 1; // Convert 0-based index to 1-based question number
+    const radioButtons = document.querySelectorAll(
+      `input[name="q${questionNum}"]`
+    );
+    let answered = false;
+
+    // Check if any radio button is checked for this question
+    radioButtons.forEach((radio) => {
+      if (radio.checked) {
+        answered = true;
+      }
     });
+
+    if (!answered) {
+      unansweredQuestions.push(questionNum);
+    }
+  }
+
+  // If there are unanswered questions, show alert and highlight all of them
+  if (unansweredQuestions.length > 0) {
+    // Reset the submit button
+    submitBtn.innerHTML = "Submit Exam";
+    submitBtn.disabled = false;
+
+    // First, clear any previous "unanswered" markings
+    document.querySelectorAll(".question-container").forEach((container) => {
+      container.classList.remove("unanswered");
+    });
+
+    // Now mark all unanswered questions - use a more direct and reliable approach
+    for (let i = 0; i < unansweredQuestions.length; i++) {
+      const qNum = unansweredQuestions[i];
+
+      // Get all question containers directly
+      const questionContainers = document.querySelectorAll(
+        ".question-container"
+      );
+
+      // Find the container for this question number
+      // We need special handling here because the text might be formatted differently
+      for (let j = 0; j < questionContainers.length; j++) {
+        const container = questionContainers[j];
+        const questionText = container.querySelector(".question-text");
+
+        if (questionText) {
+          // This will match both "Question 1:" and "Question 10:" formats
+          const match = questionText.textContent.match(/Question\s+(\d+):/i);
+          if (match && parseInt(match[1]) === qNum) {
+            container.classList.add("unanswered");
+            break;
+          }
+        }
+      }
+    }
 
     // Create message listing unanswered questions
     let message = `Please answer the following questions before submitting:\n• Question ${unansweredQuestions.join(
@@ -212,10 +272,16 @@ function checkAnswers() {
     alert(message);
 
     // Scroll to the first unanswered question
-    document.querySelector(`.unanswered`).scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
+    const firstUnanswered = document.querySelector(`.unanswered`);
+    if (firstUnanswered) {
+      firstUnanswered.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+
+    // Restart the timer since the exam wasn't submitted
+    startTimer();
 
     return;
   }
@@ -258,7 +324,6 @@ function checkAnswers() {
   // Save to appropriate sheet
   saveResult(resultData);
 }
-
 // Save result to Google Sheets
 async function saveResult(resultData) {
   try {
@@ -360,7 +425,7 @@ function startTimer() {
       clearInterval(timerInterval);
       alert("Time's up! Your exam will be submitted now.");
       checkAnswers();
-      window.location.href = "https://cbt-amber.vercel.app"; // Redirect to a specific link
+      window.location.href = "index.html"; // Redirect to a specific link
     }
 
     // Warning when 5 minutes remaining
@@ -429,104 +494,25 @@ async function fetchQuestions(day, cls, subject) {
   } catch (error) {
     console.error("Error fetching questions:", error);
     document.getElementById("questions").innerHTML = `
-      <p class="error">Error: Could not load questions for ${subject.replace(
+      <p class="error"> ${subject.replace(
         /_/g,
         " "
-      )} - ${cls}.</p>
-      <p>Please make sure the corresponding sheet exists in the spreadsheet.</p>
-      <button onclick="window.location.href='index.html'" class="back-btn">Go Back</button>
+      )} - ${cls} is not yet available.</p>
+      <p class="error">Please make sure you've selected the right Class, Subject and Day.</p>
+      <button onclick="window.location.href='index.html'" class="sub-btn">Go Back</button>
     `;
   }
 }
 
 // Add this to clear timer when exam is submitted
-function checkAnswers() {
-  // Clear the timer interval if it exists
-  if (timerInterval) {
-    clearInterval(timerInterval);
-  }
-
-  // Rest of your existing checkAnswers code...
-  let username = document.getElementById("username").value.trim();
-  if (!username) {
-    alert("Please enter your name before submitting.");
-    return;
-  }
-
-  // Check for unanswered questions
-  let unansweredQuestions = [];
-  questionsData.forEach((q, index) => {
-    let selected = document.querySelector(
-      `input[name="q${index + 1}"]:checked`
-    );
-    if (!selected) {
-      unansweredQuestions.push(index + 1);
-    }
-  });
-
-  // If there are unanswered questions, show alert and highlight them
-  if (unansweredQuestions.length > 0) {
-    // Highlight unanswered questions
-    unansweredQuestions.forEach((qNum) => {
-      const questionElement = document
-        .querySelector(`div:has(input[name="q${qNum}"])`)
-        .closest(".question-container");
-      questionElement.classList.add("unanswered");
-    });
-
-    // Create message listing unanswered questions
-    let message = `Please answer the following questions before submitting:\n• Question ${unansweredQuestions.join(
-      "\n• Question "
-    )}`;
-    alert(message);
-
-    // Scroll to the first unanswered question
-    document.querySelector(`.unanswered`).scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
-
-    // Restart the timer since the exam wasn't submitted
-    startTimer();
-
-    return;
-  }
-
-  // Proceed with calculating score and submitting
-  let score = 0;
-  let responses = [];
-  let totalQuestions = questionsData.length;
-
-  questionsData.forEach((q, index) => {
-    let selected = document.querySelector(
-      `input[name="q${index + 1}"]:checked`
-    );
-    let isCorrect = selected && selected.value === q.correctAnswer;
-    if (isCorrect) score++;
-
-    responses.push({
-      questionNumber: index + 1,
-      selectedAnswer: selected.value,
-      correct: isCorrect,
+function addRadioChangeListeners() {
+  document.querySelectorAll('input[type="radio"]').forEach((radio) => {
+    radio.addEventListener("change", (e) => {
+      // Find the question container
+      const questionContainer = e.target.closest(".question-container");
+      if (questionContainer) {
+        questionContainer.classList.remove("unanswered");
+      }
     });
   });
-
-  // Prepare result data
-  const resultData = {
-    timestamp: new Date().toISOString(),
-    name: username,
-    subject:
-      localStorage.getItem("examSubject") ||
-      document.getElementById("subject").value,
-    class:
-      localStorage.getItem("examClass") ||
-      document.getElementById("class").value,
-    score: score,
-    totalQuestions: totalQuestions,
-    percentage: ((score / totalQuestions) * 100).toFixed(1),
-    responses: JSON.stringify(responses),
-  };
-
-  // Save to appropriate sheet
-  saveResult(resultData);
 }
