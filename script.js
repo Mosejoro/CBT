@@ -138,8 +138,9 @@ function displayQuestions(data, subject, cls) {
       B: row[2],
       C: row[3],
       D: row[4],
+      E: row[5],
     };
-    let correctAnswer = row[5];
+    let correctAnswer = row[6];
 
     questionsData.push({
       questionNumber: i,
