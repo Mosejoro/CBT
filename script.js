@@ -118,7 +118,7 @@ function displayQuestions(data, subject, cls) {
       <h3 class="Warn">Do well to answer all the questions before the time runs out.</h3>
       <div class="student-info">
         <label for="username">Full Name:</label>
-        <input class="Input" type="text" id="username" placeholder="e.g Yisa Tabitha" required>
+        <input class="Input" type="text" id="username" placeholder="e.g Asa Success" required>
       </div>
     </div>
   `;
@@ -492,7 +492,7 @@ if (window.location.pathname.includes("questions.html")) {
 }
 
 // Timer functionality
-let examDuration = 11 * 60; // 30 minutes in seconds
+let examDuration = 60 * 60; // 30 minutes in seconds
 let timerInterval;
 
 function startTimer() {
